@@ -1,30 +1,35 @@
-console.log("Starting new connection");
+const connectDb = require("./config/database");
 const express = require("express");
 const app = express();
-const {adminAuth,userAuth} = require("./middlewares/auth");
+const cookieParser = require("cookie-parser");
+const cors = require('cors');
+app.use(cors({
+  origin:"http://localhost:5173",
+  credentials:true
+}));
+app.use(cookieParser());
+app.use(express.json());
 
-app.use("/admin",adminAuth);
-// app.use("/user",userAuth);
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const requestRouter = require("./routes/requests");
+const { userRouter } = require("./routes/user");
 
-app.get("/admin/delete", (req, res) => {
-  res.send({firstName:"Anmol",lastName:"reshi"});
-})
+app.use("/",authRouter);
+app.use("/",profileRouter);
+app.use("/",requestRouter);
+app.use("/",userRouter);
 
-app.use("/admin/get", (req, res) => {
-  res.send("hello from the test server");
-});
-app.use("/user/data", (req, res) => {
-    res.send("hello from user server");
+connectDb()
+  .then(() => {
+    console.log("database connection established....");
+    app.listen(3000, () => {
+      console.log("Connect to port 3000.....");
+    });
+  })
+  .catch((error) => {
+    console.error("database cannot be established....");
   });
-app.use("/user/get",userAuth, (req, res) => {
-  res.send("hello from user server");
-});
 
-// app.use("/", (req, res) => {
-//   res.send("hello from main server");
-// });
 
-// app.listen(3000);// listen on port 3000
-app.listen(3000, () => {
-  console.log("Connect to port 3000.....");
-});
+
